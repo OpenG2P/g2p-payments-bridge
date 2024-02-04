@@ -4,7 +4,6 @@ build-backend = "hatchling.build"
 
 [project]
 name = "g2p-cash-transfer-bridge-core"
-version = "0.1.0"
 authors = [
   { name="OpenG2P", email="info@openg2p.org" },
 ]
@@ -16,13 +15,17 @@ classifiers = [
   "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
   "Operating System :: OS Independent",
 ]
-dependencies=[
+dependencies = [
   "openg2p-fastapi-common",
   "openg2p-fastapi-auth",
 ]
+dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://openg2p.org"
 Documentation = "https://docs.openg2p.org/"
 Repository = "https://github.com/OpenG2P/g2p-cash-transfer-bridge"
 Source = "https://github.com/OpenG2P/g2p-cash-transfer-bridge"
+
+[tool.hatch.version]
+path = "src/g2p_cash_transfer_bridge_core/__init__.py"

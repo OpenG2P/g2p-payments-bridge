@@ -1,6 +1,8 @@
 from openg2p_fastapi_common.config import Settings
 from pydantic_settings import SettingsConfigDict
 
+from . import __version__
+
 
 class Settings(Settings):
     model_config = SettingsConfigDict(
@@ -16,5 +18,5 @@ class Settings(Settings):
     Further details goes here
     ***********************************
     """
-    openapi_version: str = "0.1.0"
+    openapi_version: str = __version__
     db_dbname: str = "gctbdb"

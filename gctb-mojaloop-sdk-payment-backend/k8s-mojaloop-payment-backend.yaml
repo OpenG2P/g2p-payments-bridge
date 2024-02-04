@@ -36,7 +36,7 @@ spec:
               value: http://mapper.spar/v0.1.0/mapper/resolve
             - name: GCTB_ID_TRANSLATE_QUEUE_REDIS_HOST
               value: gctb-redis-master
-            - name: GCTB_MOJALOOP_SDK_TRANSFER_URL
+            - name: GCTB_MOJALOOP_SDK_TRANSFERS_URL
               value: http://ml-simulators-sim-dfsp1-scheme-adapter.ml:4001/transfers
             - name: GCTB_MOJALOOP_SDK_PAYER_ID_VALUE
               value: "1212121212"

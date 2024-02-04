@@ -23,7 +23,7 @@ from openg2p_fastapi_common.errors.http_exceptions import BadRequestError
 from ..config import Settings
 
 _config = Settings.get_config()
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger(_config.logging_default_logger_name)
 
 
 class PaymentMultiplexerService(CorePaymentMultiplexerService):

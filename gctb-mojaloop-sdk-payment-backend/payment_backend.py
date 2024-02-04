@@ -60,7 +60,7 @@ class Settings(BaseSettings):
 
 
 _config = Settings.get_config()
-_logger = logging.getLogger("openg2p_fastapi_common.app")
+_logger = logging.getLogger(_config.logging_default_logger_name)
 
 
 class ReferenceIdStatus(BaseModel):

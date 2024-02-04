@@ -41,6 +41,10 @@ spec:
                 secretKeyRef:
                   key: password
                   name: postgres-postgresql
+            - name: GCTB_SIMPLE_MPESA_AUTH_URL
+              value: http://simple-mpesa.mpesa/api/login/agent
+            - name: GCTB_SIMPLE_MPESA_PAYMENT_URL
+              value: http://simple-mpesa.mpesa/api/transaction/deposit
           ports:
             - containerPort: 8000
               name: http
