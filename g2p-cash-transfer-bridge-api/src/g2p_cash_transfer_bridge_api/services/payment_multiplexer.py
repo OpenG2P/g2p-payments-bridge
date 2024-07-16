@@ -1,7 +1,7 @@
 import logging
+import random
 import re
 import uuid
-import random
 
 from g2p_cash_transfer_bridge_core.models.disburse import (
     DisburseRequest,
@@ -49,14 +49,16 @@ class PaymentMultiplexerService(CorePaymentMultiplexerService):
             "Beneficiary Account is Closed",
             "Beneficiary Account is Dormant",
             "Beneficiary Account not found",
-            "Beneficiary Account has a No Credit Policy"
+            "Beneficiary Account has a No Credit Policy",
         ]
         backends = []
         if _config.get_backend_name_from_translate:
-            backends = [f'backend{i}' for i in range(len(disburse_request.disbursements))]
+            backends = [
+                f"backend{i}" for i in range(len(disburse_request.disbursements))
+            ]
 
         for i, disbursement in enumerate(disburse_request.disbursements):
-            if random.random() < 0.2: # 20% chance of failure
+            if random.random() < 0.2:  # 20% chance of failure
                 status = "rjct"
                 error_code = "rjct_payment_failed"
                 error_msg = random.choice(error_messages)
@@ -70,8 +72,12 @@ class PaymentMultiplexerService(CorePaymentMultiplexerService):
                 backend_name = backends[i]
 
             await PaymentListItem.insert(
-                disburse_request.transaction_id, disbursement, backend_name=backend_name, status=status,
-                error_code=error_code, error_msg=error_msg
+                disburse_request.transaction_id,
+                disbursement,
+                backend_name=backend_name,
+                status=status,
+                error_code=error_code,
+                error_msg=error_msg,
             )
 
     async def disbursement_status(
