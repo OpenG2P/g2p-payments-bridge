@@ -9,42 +9,36 @@ jobs:
     name: Docker Build and Push
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: ${{ secrets.docker_hub_organisation }}
+      NAMESPACE: ${{ secrets.docker_hub_organisation || 'openg2p' }}
       SERVICE_NAME: g2p-cash-transfer-bridge
-      PAYMENT_BACKEND_SERVICE_NAME: gctb-payment-backend
     steps:
       - uses: actions/checkout@v3
-      - name: Docker build and push
+      - name: Docker build
         run: |
           BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')
-          echo "${{ secrets.docker_hub_token }}" | docker login -u ${{ secrets.docker_hub_actor }} --password-stdin
-          if [ $? -ne 0 ];then
-            echo "::error::Failed to Login to dockerhub"
-            exit 1;
-          fi
 
           IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          PAYMENT_BACKEND_IMAGE_ID=$NAMESPACE/$PAYMENT_BACKEND_SERVICE_NAME
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          PAYMENT_BACKEND_IMAGE_ID=$(echo $PAYMENT_BACKEND_IMAGE_ID | tr '[A-Z]' '[a-z]')
           VERSION=$BRANCH_NAME
           if [[ $BRANCH_NAME == master || $BRANCH_NAME == main ]]; then
             VERSION=develop
           fi
           echo IMAGE_ID=$IMAGE_ID
-          echo PAYMENT_BACKEND_IMAGE_ID=$PAYMENT_BACKEND_IMAGE_ID
           echo VERSION=$VERSION
+          echo IMAGE_ID=$IMAGE_ID >> $GITHUB_ENV
+          echo VERSION=$VERSION >> $GITHUB_ENV
 
           docker build . \
             --file Dockerfile \
             --tag $IMAGE_ID:$VERSION
-
-          docker push $IMAGE_ID:$VERSION
-
-          docker build . \
-            --file payment-backend.Dockerfile \
-            --tag $PAYMENT_BACKEND_IMAGE_ID:$VERSION
-
-          docker push $PAYMENT_BACKEND_IMAGE_ID:$VERSION
+          if [[ '${{ secrets.docker_hub_token }}' != '' && '${{ secrets.docker_hub_actor }}' != '' ]]; then
+            export DOCKER_PUSH="true"
+            echo DOCKER_PUSH=$DOCKER_PUSH >> $GITHUB_ENV
+          fi
+      - name: Docker push
+        if: env.DOCKER_PUSH == 'true'
+        run: |
+          echo "${{ secrets.docker_hub_token }}" | docker login -u ${{ secrets.docker_hub_actor }} --password-stdin
+          docker push ${{ env.IMAGE_ID }}:${{ env.VERSION }}
