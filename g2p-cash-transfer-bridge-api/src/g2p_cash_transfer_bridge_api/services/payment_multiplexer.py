@@ -1,4 +1,5 @@
 import logging
+import random
 import re
 import uuid
 
@@ -44,42 +45,49 @@ class PaymentMultiplexerService(CorePaymentMultiplexerService):
         return None
 
     async def disburse(self, disburse_request: DisburseRequest):
+        error_messages = [
+            "Beneficiary Account is Closed",
+            "Beneficiary Account is Dormant",
+            "Beneficiary Account not found",
+            "Beneficiary Account has a No Credit Policy",
+        ]
+        backends = []
         if _config.get_backend_name_from_translate:
-            payee_fa_list = []
-            try:
-                payee_fa_list = await self.id_translate_service.translate(
-                    [
-                        disbursement.payee_fa
-                        for disbursement in disburse_request.disbursements
-                    ]
-                )
-            except Exception:
-                # TODO: handle the failures
-                pass
-        # TODO : we want to make backend name configurable if true then all this or of false then None
+            backends = [
+                f"backend{i}" for i in range(len(disburse_request.disbursements))
+            ]
+
         for i, disbursement in enumerate(disburse_request.disbursements):
+            if random.random() < 0.2:  # 20% chance of failure
+                status = "rjct"
+                error_code = "rjct_payment_failed"
+                error_msg = random.choice(error_messages)
+            else:
+                status = "succ"
+                error_code = None
+                error_msg = None
+
             backend_name = None
             if _config.get_backend_name_from_translate:
-                try:
-                    backend_name = await self.get_payment_backend_from_fa(
-                        payee_fa_list[i] or ""
-                    )
-                except Exception:
-                    # TODO : handle the failures
-                    pass
+                backend_name = backends[i]
+
             await PaymentListItem.insert(
-                disburse_request.transaction_id, disbursement, backend_name=backend_name
+                disburse_request.transaction_id,
+                disbursement,
+                backend_name=backend_name,
+                status=status,
+                error_code=error_code,
+                error_msg=error_msg,
             )
 
     async def disbursement_status(
         self, status_request: DisburseTxnStatusRequest
     ) -> DisburseTxnStatusResponse:
+        ref_ids = status_request.txnstatus_request.attribute_value
         if (
             status_request.txnstatus_request.attribute_type
             == TxnStatusAttributeTypeEnum.reference_id_list
         ):
-            # TODO: handle ids not present in db
-            ref_ids = status_request.txnstatus_request.attribute_value
             if not isinstance(ref_ids, list):
                 raise BadRequestError(
                     "GCTB-PMS-350", "attribute_value is supposed to be a list."
